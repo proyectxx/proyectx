@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Control - Token de Oro CW20</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #121212;
+            color: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background-color: #1e1e1e;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            text-align: center;
+            max-width: 450px;
+            width: 100%;
+        }
+        h1 { color: #f39c12; margin-bottom: 5px; }
+        p { color: #aaaaaa; font-size: 14px; }
+        .status-box {
+            background-color: #2b2b2b;
+            padding: 12px;
+            border-radius: 6px;
+            margin: 20px 0;
+            font-family: monospace;
+            font-size: 13px;
+            word-break: break-all;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn-connect { background-color: #3498db; color: white; }
+        .btn-connect:hover { background-color: #2980b9; }
+        .btn-mint { background-color: #e67e22; color: white; }
+        .btn-mint:hover { background-color: #d35400; }
+        button:disabled { background-color: #555555; cursor: not-allowed; color: #888888; }
+    </style>
+
+    <!-- Cargamos la librería oficial Wallet Provider de Station para interactuar con la extensión -->
+    <script src="https://unpkg.com"></script>
+</head>
+<body>
+
+<div class="container">
+    <h1>Token de Oro Físico</h1>
+    <p>Activación de Inflación Automatizada Anual</p>
+    
+    <div class="status-box" id="wallet-status">
+        Billetera: Desconectada
+    </div>
+
+    <button id="btn-connect" class="btn-connect">Conectar Station Wallet</button>
+    <button id="btn-mint" class="btn-mint" disabled>Ejecutar Acuñación Anual</button>
+
+    <div class="status-box" id="tx-status" style="display: none;">
+        Estado TX: Esperando acción...
+    </div>
+</div>
+
+<script>
+    // --- CONFIGURACIÓN DE PARÁMETROS ---
+    const CONTRACT_ADDRESS = "REGISTRA_AQUÍ_LA_DIRECCIÓN_DE_TU_CONTRATO_CW20";
+    
+    // Configuración para la extensión de Station (Terra Classic / columbus-5)
+    const extensionOptions = {
+        name: "Gold Token Inflation Panel",
+        network: {
+            name: "mainnet",
+            chainID: "columbus-5",
+            lcd: "https://terra.dev"
+        }
+    };
+
+    let userAddress = null;
+    let extensionContainer = null;
+
+    // Inicializar conexión con la extensión del navegador al cargar la página
+    window.addEventListener('load', () => {
+        if (window.isStationExtensionAvailable) {
+            // El objeto global de la extensión está disponible de forma nativa en el navegador
+            extensionContainer = window.station;
+        } else {
+            document.getElementById('wallet-status').innerText = "Error: Por favor instala la extensión Station Wallet.";
+            document.getElementById('btn-connect').disabled = true;
+        }
+    });
+
+    // Acción: Conectar Billetera
+    document.getElementById('btn-connect').addEventListener('click', async () => {
+        try {
+            if (!extensionContainer) return;
+            
+            // Solicitar permisos de lectura de la dirección pública
+            const res = await extensionContainer.connect();
+            userAddress = res.address;
+
+            document.getElementById('wallet-status').innerHTML = `Conectado:<br><strong>${userAddress}</strong>`;
+            document.getElementById('btn-mint').disabled = false;
+            document.getElementById('btn-connect').style.display = 'none';
+        } catch (error) {
+            console.error(error);
+            alert("Error al intentar conectar con Station Wallet.");
+        }
+    });
+
+    // Acción: Enviar Transacción de Acuñación
+    document.getElementById('btn-mint').addEventListener('click', async () => {
+        const txStatusBox = document.getElementById('tx-status');
+        txStatusBox.style.display = 'block';
+        txStatusBox.innerText = "Estado TX: Firmando transacción en tu billetera...";
+
+        try {
+            // Construcción del mensaje JSON nativo que lee nuestro contrato en Rust
+            const txPayload = {
+                chainID: "columbus-5",
+                msgs: [
+                    {
+                        type: "wasm/MsgExecuteContract",
+                        value: {
+                            sender: userAddress,
+                            contract: CONTRACT_ADDRESS,
+                            execute_msg: {
+                                trigger_yearly_mint: {} // JSON exacto de ejecución
+                            },
+                            coins: [] // No requiere enviar fondos adicionales
+                        }
+                    }
+                ],
+                memo: "Trigger interfaz web de acuñación anual de oro"
+            };
+
+            // Enviar solicitud de firma a la extensión Station
+            const txResult = await extensionContainer.signAndPost(txPayload);
+            
+            if (txResult && txResult.success) {
+                txStatusBox.style.backgroundColor = "#27ae60";
+                txStatusBox.innerHTML = `¡Éxito!<br>Hash TX: <a href="https://hexxagon.net{txResult.result.txhash}" target="_blank" style="color:white;">Ver en el explorador</a>`;
+            } else {
+                throw new Error("La transacción fue rechazada o falló en la red.");
+            }
+
+        } catch (error) {
+            console.error(error);
+            txStatusBox.style.backgroundColor = "#c0392b";
+            txStatusBox.innerText = `Error: ${error.message || "Transacción cancelada o tiempo de espera agotado."}`;
+        }
+    });
+</script>
+
+</body>
+  </html>
+  
