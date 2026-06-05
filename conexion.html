@@ -258,4 +258,47 @@
             const horas = Math.floor((diferencia % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
             const minutos = Math.floor((diferencia % (1000 * 60 * 60)) / (1000 * 60));
             const segundos = Math.floor((diferencia % (1000 * 60)) / 1000);
+            // Acción: Enviar Transacción de Acuñación
+    document.getElementById('btn-mint').addEventListener('click', async () => {
+        const txStatusBox = document.getElementById('tx-status');
+        txStatusBox.style.display = 'block';
+        txStatusBox.innerText = "Estado TX: Firmando transacción en tu billetera...";
+
+        try {
+            const txPayload = {
+                chainID: "columbus-5",
+                msgs: [
+                    {
+                        type: "wasm/MsgExecuteContract",
+                        value: {
+                            sender: userAddress,
+                            contract: CONTRACT_ADDRESS,
+                            execute_msg: { trigger_yearly_mint: {} },
+                            coins: []
+                        }
+                    }
+                ],
+                memo: "Trigger interfaz web de acuñación anual de oro"
+            };
+
+            const txResult = await extensionContainer.signAndPost(txPayload);
+            
+            if (txResult && txResult.success) {
+                txStatusBox.style.backgroundColor = "#27ae60";
+                txStatusBox.innerHTML = `¡Éxito!<br>Hash TX: <a href="https://hexxagon.net{txResult.result.txhash}" target="_blank" style="color:white;">Ver en el explorador</a>`;
+                
+                // Forzar una reconexión para refrescar el nuevo temporizador de un año
+                setTimeout(obtenerTiempoContrato, 5000);
+            } else {
+                throw new Error("La transacción falló o fue rechazada.");
+            }
+        } catch (error) {
+            txStatusBox.style.backgroundColor = "#c0392b";
+            txStatusBox.innerText = `Error: ${error.message || "Cancelado."}`;
+        }
+    });
+</script>
+
+</body>
+</html>
 
