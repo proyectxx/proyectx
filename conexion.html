@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Control - Token de Oro CW20</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #121212;
+            color: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background-color: #1e1e1e;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            text-align: center;
+            max-width: 450px;
+            width: 100%;
+        }
+        h1 { color: #f39c12; margin-bottom: 5px; }
+        p { color: #aaaaaa; font-size: 14px; }
+        
+        .countdown-container {
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border: 1px solid #f39c12;
+        }
+        .countdown-title {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #f1c40f;
+            margin-bottom: 5px;
+        }
+        .countdown-timer {
+            font-size: 24px;
+            font-weight: bold;
+            font-family: monospace;
+            color: #ffffff;
+        }
+
+        .balance-container {
+            background: linear-gradient(135deg, #1b3a24, #274e37);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border: 1px solid #2ecc71;
+            display: none;
+        }
+        .balance-title {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #2ecc71;
+            margin-bottom: 5px;
+        }
+        .balance-amount {
+            font-size: 26px;
+            font-weight: bold;
+            font-family: monospace;
+            color: #ffffff;
+        }
+
+        .status-box {
+            background-color: #2b2b2b;
+            padding: 12px;
+            border-radius: 6px;
+            margin: 15px 0;
+            font-family: monospace;
+            font-size: 13px;
+            word-break: break-all;
+        }
+        select, button {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            box-sizing: border-box;
+        }
+        select {
+            background-color: #333333;
+            color: white;
+            cursor: pointer;
+            border: 1px solid #555555;
+        }
+        .btn-connect { background-color: #3498db; color: white; cursor: pointer; }
+        .btn-connect:hover { background-color: #2980b9; }
+        .btn-mint { background-color: #e67e22; color: white; cursor: pointer; }
+        .btn-mint:hover { background-color: #d35400; }
+        button:disabled { background-color: #555555; cursor: not-allowed; color: #888888; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Token de Oro Físico</h1>
+    <p>Activación de Inflación Automatizada Anual</p>
+    
+    <!-- CONTADOR DE TIEMPO REGRESIVO -->
+    <div class="countdown-container">
+        <div class="countdown-title">Próxima Emisión Disponible En:</div>
+        <div id="countdown" class="countdown-timer">Cargando datos...</div>
+    </div>
+
+    <!-- CUADRO SECUNDARIO: BALANCE DE TOKENS DEL USUARIO -->
+    <div class="balance-container" id="user-balance-box">
+        <div class="balance-title">Tu Balance de Oro:</div>
+        <div id="balance-value" class="balance-amount">0.000000 XAUg</div>
+    </div>
+
+    <div class="status-box" id="wallet-status">
+        Billetera: Desconectada
+    </div>
+
+    <!-- SELECCIÓN DE BILLETERA MULTIPROVEEDOR -->
+    <div id="wallet-selection-zone">
+        <label for="wallet-select" style="font-size: 12px; color: #aaa; text-align: left; display: block;">Selecciona tu Billetera:</label>
+        <select id="wallet-select">
+            <option value="station">Station Wallet (Terra)</option>
+            <option value="keplr">Keplr Wallet (Cosmos)</option>
+            <option value="orbit">Orbit Wallet</option>
+        </select>
+        <button id="btn-connect" class="btn-connect">Conectar Billetera</button>
+    </div>
+
+    <button id="btn-mint" class="btn-mint" disabled>Ejecutar Acuñación Anual</button>
+
+    <div class="status-box" id="tx-status" style="display: none;">
+        Estado TX: Esperando acción...
+    </div>
+</div>
+
+<script>
+    // --- CONFIGURACIÓN DE PARÁMETROS ---
+    const CONTRACT_ADDRESS = "REGISTRA_AQUÍ_LA_DIRECCIÓN_DE_TU_CONTRATO_CW20";
+    const LCD_URL = "https://terra.dev";
+    const CHAIN_ID = "columbus-5";
+    const UN_ANIO_EN_SEGUNDOS = 31536000;
+
+    let userAddress = null;
+    let selectedWalletType = 'station';
+    let timerInterval = null;
+    let isMintAvailable = false;
+
+    window.addEventListener('load', () => {
+        obtenerTiempoContrato();
+    });
+
+    // Acción: Conectar Billetera de forma dinámica
+    document.getElementById('btn-connect').addEventListener('click', async () => {
+        selectedWalletType = document.getElementById('wallet-select').value;
+        const statusBox = document.getElementById('wallet-status');
+
+        try {
+            if (selectedWalletType === 'station') {
+                if (!window.station) throw new Error("Instala la extensión Station Wallet.");
+                const res = await window.station.connect();
+                userAddress = res.address;
+            } 
+            else if (selectedWalletType === 'keplr') {
+                if (!window.keplr) throw new Error("Instala la extensión Keplr Wallet.");
+                await window.keplr.enable(CHAIN_ID);
+                const offlineSigner = window.keplr.getOfflineSigner(CHAIN_ID);
+                const accounts = await offlineSigner.getAccounts();
+                userAddress = accounts.address;
+            } 
+            else if (selectedWalletType === 'orbit') {
+                if (!window.orbit && !window.station) throw new Error("Instala la extensión Orbit Wallet.");
+                const provider = window.orbit || window.station;
+                const res = await provider.connect();
+                userAddress = res.address;
+            }
+
+            statusBox.innerHTML = `Conectado (${selectedWalletType.toUpperCase()}):<br><strong>${userAddress}</strong>`;
+            document.getElementById('wallet-selection-zone').style.display = 'none';
+            
+            document.getElementById('user-balance-box').style.display = 'block';
+            obtenerBalanceUsuario();
+
+            if (isMintAvailable) {
+                document.getElementById('btn-mint').disabled = false;
+            }
+        } catch (error) {
+            alert(`Error de conexión: ${error.message}`);
+        }
+    });
+
+    // Función para consultar los tokens del usuario (CW20 Balance Query)
+    async function obtenerBalanceUsuario() {
+        if (!userAddress) return;
+        try {
+            const queryMsg = { balance: { address: userAddress } };
+            const queryBase64 = btoa(JSON.stringify(queryMsg));
+            
+            const response = await fetch(`${LCD_URL}/cosmwasm/wasm/v1/contracts/${CONTRACT_ADDRESS}/smart/${queryBase64}`);
+            const data = await response.json();
+
+            if (data && data.data && data.data.balance) {
+                const balanceEntero = parseInt(data.data.balance);
+                const balanceDecimal = (balanceEntero / 1000000).toFixed(6);
+                document.getElementById('balance-value').innerText = `${balanceDecimal} XAUg`;
+            }
+        } catch (e) {
+            console.error("Error consultando balance del usuario:", e);
+            document.getElementById('balance-value').innerText = "Error al cargar balance";
+        }
+    }
+
+    // Función para consultar a la Blockchain el estado del temporizador
+    async function obtenerTiempoContrato() {
+        try {
+            const queryMessage = btoa(JSON.stringify({ get_inflation_status: {} }));
+            const response = await fetch(`${LCD_URL}/cosmwasm/wasm/v1/contracts/${CONTRACT_ADDRESS}/smart/${queryMessage}`);
+            const data = await response.json();
+
+            if (data && data.data) {
+                const lastMintTime = parseInt(data.data.last_mint_time);
+                const tiempoObjetivoS = lastMintTime + UN_ANIO_EN_SEGUNDOS;
+                iniciarContadorRegresivo(tiempoObjetivoS * 1000); 
+            }
+        } catch (e) {
+            console.error("Error consultando el contrato:", e);
+            document.getElementById('countdown').innerText = "Contrato no detectado";
+        }
+    }
+
+    // Lógica del reloj visual en tiempo real
+    function iniciarContadorRegresivo(targetTimestampMs) {
+        if (timerInterval) clearInterval(timerInterval);
+
+        timerInterval = setInterval(() => {
+            const ahora = Date.now();
+            const diferencia = targetTimestampMs - ahora;
+
+            if (diferencia <= 0) {
+                clearInterval(timerInterval);
+                document.getElementById('countdown').innerText = "¡DISPONIBLE AHORA!";
+                document.getElementById('countdown').style.color = "#2ecc71";
+                isMintAvailable = true;
+                
+                if (userAddress) document.getElementById('btn-mint').disabled = false;
+                return;
+            }
+
+            const dias = Math.floor(diferencia / (1000 * 60 * 60 * 24));
+            const horas = Math.floor((diferencia % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutos = Math.floor((diferencia % (1000 * 60 * 60)) / (1000 * 60));
+            const segundos = Math.floor((diferencia % (1000 * 60)) / 1000);
+
