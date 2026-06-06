@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LUNC & BULL RUN Swap</title>
+    <!-- Tailwind CSS para el diseño -->
+    <script src="https://jsdelivr.net"></script>
+    <!-- CosmJS / CosmWasm CDN para conexión y consultas de contratos -->
+    <script src="https://github.io"></script>
+    <script src="https://github.io"></script>
+    <!-- Tu archivo de lógica unificado -->
+    <script src="js.js" defer></script>
+</head>
+<body class="bg-slate-900 text-white font-sans flex items-center justify-center min-h-screen">
+
+    <div class="w-full max-w-md p-6 bg-slate-800 rounded-2xl shadow-xl border border-slate-700">
+        <!-- Encabezado -->
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-xl font-bold tracking-wide">Terraport Swap</h1>
+            <button id="btn-connect" class="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-slate-950 font-semibold rounded-xl text-sm transition-all shadow-md">
+                Conectar Wallet
+            </button>
+        </div>
+
+        <!-- Estado de Wallet -->
+        <p id="wallet-status" class="text-xs text-slate-400 mb-4 text-center truncate">Wallet no conectada</p>
+
+        <!-- Token de Origen (Pagas) -->
+        <div class="bg-slate-900 p-4 rounded-xl mb-3 border border-slate-700">
+            <div class="flex justify-between items-center mb-1">
+                <label class="text-xs text-slate-400 block">Pagas</label>
+                <span id="balance-from" class="text-xs text-emerald-400 font-medium">Saldo: 0.00</span>
+            </div>
+            <div class="flex justify-between items-center">
+                <input id="input-from" type="number" placeholder="0.0" class="bg-transparent text-2xl font-semibold outline-none w-2/3 text-white">
+                <select id="select-from" class="bg-slate-800 border border-slate-600 rounded-lg px-3 py-1 text-sm font-medium">
+                    <option value="uluna">LUNC</option>
+                    <option value="terra1fns45s9yr2nwtas6s0umzq280ar7l23mehqsqcg4frs4ag85mufspgdw39">BULL RUN</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Botón de Inversión Estético -->
+        <div class="flex justify-center -my-2 relative z-10">
+            <button class="bg-slate-700 border border-slate-600 p-2 rounded-full hover:bg-slate-600 transition-all text-sm">
+                ⬇️
+            </button>
+        </div>
+
+        <!-- Token de Destino (Recibes) -->
+        <div class="bg-slate-900 p-4 rounded-xl mt-3 mb-6 border border-slate-700">
+            <div class="flex justify-between items-center mb-1">
+                <label class="text-xs text-slate-400 block">Recibes</label>
+                <span id="balance-to" class="text-xs text-emerald-400 font-medium">Saldo: 0.00</span>
+            </div>
+            <div class="flex justify-between items-center">
+                <input id="input-to" type="number" placeholder="0.0" readonly class="bg-transparent text-2xl font-semibold outline-none w-2/3 text-slate-400 cursor-not-allowed">
+                <select id="select-to" class="bg-slate-800 border border-slate-600 rounded-lg px-3 py-1 text-sm font-medium">
+                    <option value="terra1fns45s9yr2nwtas6s0umzq280ar7l23mehqsqcg4frs4ag85mufspgdw39">BULL RUN</option>
+                    <option value="uluna">LUNC</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Detalles del Swap -->
+        <div class="space-y-2 mb-6 px-1 text-sm">
+            <div class="flex justify-between text-slate-400">
+                <span>Ruta de intercambio</span>
+                <span>Terraport AMM</span>
+            </div>
+        </div>
+
+        <!-- Botón de Acción -->
+        <button id="btn-swap" disabled class="w-full py-4 bg-slate-700 text-slate-400 font-bold rounded-xl text-center cursor-not-allowed transition-all uppercase tracking-wider">
+            Conecta la wallet primero
+        </button>
+    </div>
+
+</body>
+</html>
