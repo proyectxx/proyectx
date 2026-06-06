@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ATHARIUM (ATH) Swap Portal</title>
+    <!-- Importar Ethers.js v6 -->
+    <script src="https://cloudflare.com"</script>
+    <style>
+        :root {
+            --bg-color: #0b0e14;
+            --card-bg: #151a26;
+            --text-color: #ffffff;
+            --accent-color: #627eea;
+            --input-bg: #1e2538;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .swap-container {
+            background-color: var(--card-bg);
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            width: 400px;
+        }
+        h2 { text-align: center; margin-top: 0; color: var(--accent-color); }
+        .btn {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: none;
+            background-color: var(--accent-color);
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 15px;
+        }
+        .btn:hover { opacity: 0.9; }
+        .input-group {
+            margin-bottom: 15px;
+        }
+        label { display: block; margin-bottom: 5px; font-size: 14px; color: #a0aec0; }
+        select, input {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #2d3748;
+            background-color: var(--input-bg);
+            color: white;
+            box-sizing: border-box;
+            font-size: 15px;
+        }
+        .price-info {
+            background-color: rgba(98, 126, 234, 0.1);
+            border: 1px solid var(--accent-color);
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 13px;
+            margin-top: 15px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+<div class="swap-container">
+    <h2>ATHARIUM Swap - ETH, BTC, HBAR, BASE, BNB</h2>
+    
+    <button id="btnConnect" class="btn" onclick="connectWallet()">Conectar Billetera</button>
+    <p id="walletAddress" style="font-size:12px; text-align:center; color:#4caf50;"></p>
+
+    <!-- 1. Selección de Red -->
+    <div class="input-group">
+        <label for="networkSelect">1. Selecciona la Red de Origen</label>
+        <select id="networkSelect" onchange="handleNetworkChange()">
+            <option value="1">Ethereum Mainnet</option>
+            <option value="56">Binance Smart Chain (BSC)</option>
+            <option value="295">Hedera Mainnet</option>
+            <option value="8453">Base Mainnet</option>
+        </select>
+    </div>
+
+    <!-- 2. Selección de Token de Pago -->
+    <div class="input-group">
+        <label for="tokenSelect">2. Intercambiar ATH por:</label>
+        <select id="tokenSelect" onchange="updatePriceSimulation()">
+            <option value="USDT">USDT (Dólar Tether)</option>
+            <option value="BTC">BTC (Bitcoin Encriptado/EVM)</option>
+            <option value="ETH">ETH (Ethereum)</option>
+            <option value="BNB">BNB (Binance Coin)</option>
+            <option value="HBAR">HBAR (Hedera Native/EVM)</option>
+            <option value="BASE">ETH on Base (Base Native)</option>
+        </select>
+    </div>
+
+    <!-- 3. Formulario de Montos -->
+    <div class="input-group">
+        <label for="amountATH">Cantidad de ATH a vender:</label>
+        <input type="number" id="amountATH" placeholder="0.0" oninput="updatePriceSimulation()">
+    </div>
+
+    <div class="input-group">
+        <label for="amountReceive">Recibirás (Estimado):</label>
+        <input type="number" id="amountReceive" placeholder="0.0" disabled>
+    </div>
+
+    <button id="btnSwap" class="btn" style="background-color: #28a745;" onclick="executeSwap()" disabled>Ejecutar Intercambio</button>
+
+    <div class="price-info" id="priceOracleInfo">
+        Precio Oráculo ETH/USD: Cargando...
+    </div>
+</div>
+
+<script>
+    // Direcciones de tus contratos desplegados (Reemplaza con tus direcciones reales)
+    const CONTRACT_ADDRESSES = {
+        1: "0x0000000000000000000000000000000000000000",    // Ethereum
+        56: "0x0000000000000000000000000000000000000000",   // BSC
+        295: "0x0000000000000000000000000000000000000000",  // Hedera
+        8453: "0x0000000000000000000000000000000000000000"  // Base
+    };
+
+    // ABI mínimo para interactuar con tu función del oráculo y transferencia
+    const ATH_ABI = [
+        "function getEthPrice() public view returns (int256)",
+        "function transfer(address to, uint256 amount) public returns (bool)"
+    ];
+
+    // Precios de referencia cruzada simulados para activos que no son ETH
+    // En producción, estos valores se consumen dinámicamente de otros oráculos (ej. BTC/USD)
+    const ASSET_PRICES_USD = {
+        USDT: 1.00,
+        BTC: 92000.00, // Ajustar según mercado real
+        BNB: 600.00,
+        HBAR: 0.15
+    };
+
+    let provider;
+    let signer;
+    let currentEthPriceUSD = 3500; // Valor por defecto hasta conectar oráculo
+
+    async function connectWallet() {
+        if (window.ethereum) {
+            try {
+                provider = new ethers.BrowserProvider(window.ethereum);
+                await provider.send("eth_requestAccounts", []);
+                signer = await provider.getSigner();
+                const address = await signer.getAddress();
+                
+                document.getElementById("walletAddress").innerText = `Conectado: ${address.substring(0,6)}...${address.substring(38)}`;
+                document.getElementById("btnConnect").innerText = "Billetera Lista";
+                document.getElementById("btnSwap").disabled = false;
+
+                // Detectar red actual del usuario en Metamask
+                const network = await provider.getNetwork();
+                document.getElementById("networkSelect").value = network.chainId.toString();
+                
+                await fetchOraclePrice();
+            } catch (error) {
+                alert("Error al conectar billetera: " + error.message);
+            }
+        } else {
+            alert("Por favor instala una billetera EVM como MetaMask.");
+        }
+    }
+
+    async function handleNetworkChange() {
+        const targetChainId = document.getElementById("networkSelect").value;
+        if (!window.ethereum) return;
+
+        // Intentar cambiar la red en la MetaMask del usuario automáticamente
+        try {
+            await window.ethereum.request({
+                method: 'wallet_switchEthereumChain',
+                params: [{ chainId: '0x' + parseInt(targetChainId).toString(16) }],
+            });
+            // Reconectar para refrescar el proveedor
+            await connectWallet();
+        } catch (error) {
+            alert("Por favor cambia manualmente a la red seleccionada en tu billetera.");
+        }
+    }
+
+    async function fetchOraclePrice() {
+        const chainId = document.getElementById("networkSelect").value;
+        const contractAddress = CONTRACT_ADDRESSES[chainId];
+
+        if (!contractAddress || contractAddress === "0x0000000000000000000000000000000000000000") {
+            document.getElementById("priceOracleInfo").innerText = "Precio simulado (Configura la dirección del contrato)";
+            return;
+        }
+
+        try {
+            const contract = new ethers.Contract(contractAddress, ATH_ABI, provider);
+            const rawPrice = await contract.getEthPrice();
+            // Chainlink devuelve 8 decimales para el par ETH/USD
+            currentEthPriceUSD = Number(rawPrice) / 10**8;
+            document.getElementById("priceOracleInfo").innerText = `Precio en vivo Oráculo: 1 ETH = $${currentEthPriceUSD.toFixed(2)} USD`;
+            updatePriceSimulation();
+        } catch (err) {
+            console.error(err);
+            document.getElementById("priceOracleInfo").innerText = "Error leyendo el Oráculo. Usando valor base.";
+        }
+    }
+
+    function updatePriceSimulation() {
+        const amountATH = parseFloat(document.getElementById("amountATH").value);
+        if (isNaN(amountATH) || amountATH <= 0) {
+            document.getElementById("amountReceive").value = "";
+            return;
+        }
+
+        const targetToken = document.getElementById("tokenSelect").value;
+        
+        // Dado que 1 ATH = 1 ETH en tu concepto de paridad económica:
+        const totalValueUSD = amountATH * currentEthPriceUSD;
+        let amountToReceive = 0;
+
+        if (targetToken === "ETH" || targetToken === "BASE") {
+            // Intercambio 1:1 directo
+            amountToReceive = amountATH;
+        } else {
+            // Conversión cruzada usando el precio en dólares del activo destino
+            const targetAssetPrice = ASSET_PRICES_USD[targetToken] || 1;
+            amountToReceive = totalValueUSD / targetAssetPrice;
+        }
+
+        document.getElementById("amountReceive").value = amountToReceive.toFixed(6);
+    }
+
+    async function executeSwap() {
+        const chainId = document.getElementById("networkSelect").value;
+        const contractAddress = CONTRACT_ADDRESSES[chainId];
+        const amountATH = document.getElementById("amountATH").value;
+
+        if (!contractAddress || contractAddress === "0x0000000000000000000000000000000000000000") {
+            alert("Error: Debes configurar la dirección de tu contrato en la variable CONTRACT_ADDRESSES del código HTML.");
+            return;
+        }
+
+        try {
+            const contract = new ethers.Contract(contractAddress, ATH_ABI, signer);
+            const amountInWei = ethers.parseUnits(amountATH, 18);
+            
+</body>
+</html>
+
