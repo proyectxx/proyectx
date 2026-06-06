@@ -258,6 +258,7 @@
             const horas = Math.floor((diferencia % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
             const minutos = Math.floor((diferencia % (1000 * 60 * 60)) / (1000 * 60));
             const segundos = Math.floor((diferencia % (1000 * 60)) / 1000);
+            const pad = (num) => String(num).padStart(2, '0');document.getElementById('countdown').innerText = ${dias}d ${pad(horas)}h ${pad(minutos)}m ${pad(segundos)}s;document.getElementById('btn-mint').disabled = true;isMintAvailable = false;}, 1000);}
             // Acción: Enviar Transacción de Acuñación
     document.getElementById('btn-mint').addEventListener('click', async () => {
         const txStatusBox = document.getElementById('tx-status');
