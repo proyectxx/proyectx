@@ -13,6 +13,7 @@ const btnConnect = document.getElementById('btn-connect');
 const walletStatus = document.getElementById('wallet-status');
 const btnSwap = document.getElementById('btn-swap');
 const inputFrom = document.getElementById('input-from');
+const inputTo = document.getElementById('input-to');
 const selectFrom = document.getElementById('select-from');
 const selectTo = document.getElementById('select-to');
 const balanceFromDisplay = document.getElementById('balance-from');
@@ -64,6 +65,53 @@ function actualizarPantallaBalances(luncBalance, bullBalance) {
         balanceToDisplay.textContent = `Saldo: ${luncBalance.toFixed(2)} LUNC`;
     } else {
         balanceToDisplay.textContent = `Saldo: ${bullBalance.toFixed(2)} BULL`;
+    }
+}
+
+// ==========================================
+// LÓGICA DE APARTADO: SIMULACIÓN DE PRECIOS
+// ==========================================
+async function simularIntercambio() {
+    const amount = parseFloat(inputFrom.value);
+
+    // Si no hay un monto válido, limpiamos el campo de destino
+    if (!amount || amount <= 0 || isNaN(amount)) {
+        inputTo.value = "";
+        return;
+    }
+
+    try {
+        inputTo.value = "Calculando...";
+        const client = await window.CosmJS.CosmWasmStargate.CosmWasmClient.connect(RPC_ENDPOINT);
+        const amountInMicro = (amount * 1000000).toFixed(0);
+        const deLuncABull = selectFrom.value === "uluna";
+
+        // Definir el activo ofrecido en el formato exigido por Terraport
+        const assetInfo = deLuncABull 
+            ? { native_token: { denom: "uluna" } }
+            : { token: { contract_addr: BULL_RUN_CONTRACT } };
+
+        // Estructurar el mensaje de consulta (Query Message)
+        const queryMsg = {
+            simulation: {
+                offer_asset: {
+                    info: assetInfo,
+                    amount: amountInMicro.toString()
+                }
+            }
+        };
+
+        // Consultar al contrato del pool
+        const resultado = await client.queryContractSmart(TERRAPORT_BULL_LUNC_POOL, queryMsg);
+
+        if (resultado && resultado.return_amount) {
+            const cantidadRecibida = parseFloat(resultado.return_amount) / 1000000;
+            inputTo.value = cantidadRecibida.toFixed(6);
+        }
+
+    } catch (error) {
+        console.error("Error al simular precio del pool:", error);
+        inputTo.value = "Error";
     }
 }
 
@@ -133,7 +181,7 @@ function activarBotonSwap() {
 // EVENTOS Y ACTIVADORES DE INTERFAZ
 // ==========================================
 
-// 1. Conexión de Wallet
+// 1. Conexión de Wallet (Keplr)
 btnConnect.addEventListener('click', async () => {
     if (!window.keplr) {
         alert("Por favor instala la extensión de Keplr Wallet.");
@@ -158,22 +206,28 @@ btnConnect.addEventListener('click', async () => {
     }
 });
 
-// 2. Monitoreo de Entradas y Selectores
-inputFrom.addEventListener('input', activarBotonSwap);
+// 2. Monitoreo de Entradas y Selectores con Estimación de Precios
+inputFrom.addEventListener('input', () => {
+    activarBotonSwap();
+    simularIntercambio();
+});
+
 selectFrom.addEventListener('change', async () => {
-    // Evitar tener el mismo token en origen y destino
     if (selectFrom.value === selectTo.value) {
         selectTo.value = selectFrom.value === "uluna" ? BULL_RUN_CONTRACT : "uluna";
     }
     await consultarBalances();
     activarBotonSwap();
+    simularIntercambio();
 });
+
 selectTo.addEventListener('change', async () => {
     if (selectTo.value === selectFrom.value) {
         selectFrom.value = selectTo.value === "uluna" ? BULL_RUN_CONTRACT : "uluna";
     }
     await consultarBalances();
     activarBotonSwap();
+    simularIntercambio();
 });
 
 // 3. Ejecución del botón Swap
@@ -195,7 +249,7 @@ btnSwap.addEventListener('click', async () => {
 
         // Estructura de comisiones estándar para LUNC (Columbus-5)
         const fee = {
-            amount: [{ denom: "uluna", amount: "3000000" }], // Ajustar según mercado de Gas de LUNC
+            amount: [{ denom: "uluna", amount: "3000000" }], 
             gas: "500000",
         };
 
@@ -204,6 +258,7 @@ btnSwap.addEventListener('click', async () => {
         if (txResult.code === 0) {
             alert(`¡Swap Exitoso!\nHash: ${txResult.transactionHash}`);
             inputFrom.value = "";
+            inputTo.value = "";
             await consultarBalances();
         } else {
             alert(`Fallo en la Blockchain: ${txResult.rawLog}`);
@@ -211,7 +266,7 @@ btnSwap.addEventListener('click', async () => {
 
     } catch (error) {
         console.error("Error ejecutando swap:", error);
-        alert("Transacción cancelada o error en la firma.");
+         alert("Transacción cancelada o error en la firma.");
     } finally {
         activarBotonSwap();
     }
