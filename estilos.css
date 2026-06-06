@@ -1,0 +1,81 @@
+:root {
+    --bg-color: #0b0e14;
+    --card-bg: #151a26;
+    --text-color: #ffffff;
+    --accent-color: #627eea;
+    --input-bg: #1e2538;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+}
+
+.swap-container {
+    background-color: var(--card-bg);
+    padding: 30px;
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    width: 400px;
+}
+
+h2 { 
+    text-align: center; 
+    margin-top: 0; 
+    color: var(--accent-color); 
+}
+
+.btn {
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+    border: none;
+    background-color: var(--accent-color);
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 16px;
+    margin-top: 15px;
+}
+
+.btn:hover { 
+    opacity: 0.9; 
+}
+
+.input-group {
+    margin-bottom: 15px;
+}
+
+label { 
+    display: block; 
+    margin-bottom: 5px; 
+    font-size: 14px; 
+    color: #a0aec0; 
+}
+
+select, input {
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid #2d3748;
+    background-color: var(--input-bg);
+    color: white;
+    box-sizing: border-box;
+    font-size: 15px;
+}
+
+.price-info {
+    background-color: rgba(98, 126, 234, 0.1);
+    border: 1px solid var(--accent-color);
+    padding: 10px;
+    border-radius: 8px;
+    font-size: 13px;
+    margin-top: 15px;
+    text-align: center;
+}
