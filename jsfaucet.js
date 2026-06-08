@@ -32,68 +32,44 @@ const txTemplate = {
 
 let userAddress = "";
 let timerInterval;
-let signClient; 
-let currentSession = null;
 
-// Ejecutar cuando el DOM esté completamente cargado
 document.addEventListener("DOMContentLoaded", () => {
     document.getElementById('costoTexto').innerText = `${COBRO_LUNC} LUNC`;
 });
 
-async function connectWalletConnect() {
+async function connectKeplr() {
     const statusDiv = document.getElementById('status');
     const connectBtn = document.getElementById('connectBtn');
     
+    if (!window.keplr) {
+        statusDiv.className = "error";
+        statusDiv.innerText = "Error: Extensión Keplr no detectada en este navegador.\nPor favor instálala antes de continuar.";
+        return;
+    }
+
     connectBtn.disabled = true;
     statusDiv.className = "";
-    statusDiv.innerText = "Iniciando WalletConnect...";
+    statusDiv.innerText = "Conectando con Keplr...";
 
     try {
-        if (typeof WalletConnectSignClient === "undefined") {
-            throw new Error("La librería de WalletConnect no se ha cargado correctamente. Verifica tu conexión.");
-        }
-
-        signClient = await WalletConnectSignClient.init({
-            projectId: "3fcc6bba6e1b4369bc9229e710b14644" 
-        });
-
-        statusDiv.innerText = "Generando enlace de emparejamiento...";
+        // Solicitar al usuario que apruebe el acceso a la red de Terra Classic
+        await window.keplr.enable(CHAIN_ID);
         
-        const { uri, approval } = await signClient.connect({
-            requiredNamespaces: {
-                cosmos: {
-                    methods: ["cosmos_signAmino", "cosmos_signDirect"],
-                    chains: ["cosmos:columbus-5"],
-                    events: []
-                }
-            }
-        });
-
-        if (uri) {
-            window.location.href = `terra://wc?uri=${encodeURIComponent(uri)}`;
-            statusDiv.innerText = "Por favor, aprueba la solicitud de conexión en tu aplicación Station Wallet.";
-        }
-
-        currentSession = await approval();
+        // Obtener la cuenta del firmante de Keplr
+        const offlineSigner = window.keplr.getOfflineSigner(CHAIN_ID);
+        const accounts = await offlineSigner.getAccounts();
         
-        const cosmosNamespace = currentSession.namespaces.cosmos;
-        if (cosmosNamespace && cosmosNamespace.accounts.length > 0) {
-            const parts = cosmosNamespace.accounts[0].split(":");
-            userAddress = parts[parts.length - 1]; 
-            
-            document.getElementById('walletAddress').value = `Cuenta: ${userAddress}`;
-            connectBtn.style.display = 'none';
-            document.getElementById('faucetForm').style.display = 'block';
-            statusDiv.innerText = "";
-            
-            checkCooldown();
-        } else {
-            throw new Error("No se devolvieron cuentas válidas para la red Terra.");
-        }
-
+        userAddress = accounts[0].address;
+        
+        document.getElementById('walletAddress').value = `Cuenta Keplr: ${userAddress}`;
+        connectBtn.style.display = 'none';
+        document.getElementById('faucetForm').style.display = 'block';
+        statusDiv.innerText = "";
+        
+        checkCooldown();
     } catch (err) {
         statusDiv.className = "error";
-        statusDiv.innerText = "Error al conectar: " + err.message;
+        statusDiv.innerText = "Error al conectar Keplr: " + err.message;
         connectBtn.disabled = false;
     }
 }
@@ -130,51 +106,48 @@ function checkCooldown() {
     cooldownText.innerText = "";
 }
 
-async function enviarTransaccionWalletConnect() {
+async function enviarTransaccionKeplr() {
     const statusDiv = document.getElementById('status');
     const claimBtn = document.getElementById('claimBtn');
     
     claimBtn.disabled = true;
     statusDiv.className = "";
-    statusDiv.innerText = "Enviando solicitud de firma a tu teléfono...";
+    statusDiv.innerText = "Esperando aprobación de firma en Keplr...";
 
     try {
         let txString = JSON.stringify(txTemplate);
         txString = txString.replaceAll("{{USER_ADDRESS}}", userAddress);
         const finalTx = JSON.parse(txString);
 
-        window.location.href = "terra://wc";
+        // Estructurar el documento de transacción en formato Amino (Estándar Cosmos)
+        const signDoc = {
+            chain_id: CHAIN_ID,
+            account_number: "0", 
+            sequence: "0",       
+            fee: { 
+                amount: [{ amount: "30000000", "denom": "uluna" }], 
+                gas: "250000" 
+            },
+            msgs: finalTx.msgs,
+            memo: "Faucet Claim AUSD"
+        };
 
-        await signClient.request({
-            topic: currentSession.topic,
-            chainId: "cosmos:columbus-5",
-            request: {
-                method: "cosmos_signAmino",
-                params: {
-                    signerAddress: userAddress,
-                    signDoc: {
-                        chain_id: CHAIN_ID,
-                        fee: { 
-                            amount: [{ amount: "30000000", denom: "uluna" }], 
-                            gas: "250000" 
-                        },
-                        msgs: finalTx.msgs,
-                        memo: "Faucet Claim AUSD"
-                    }
-                }
-            }
-        });
-
-        localStorage.setItem(`last_claim_${userAddress}`, Date.now().toString());
+        // Solicitar la firma en la ventana emergente de Keplr
+        const signResponse = await window.keplr.signAmino(CHAIN_ID, userAddress, signDoc);
         
-        statusDiv.className = "success";
-        statusDiv.innerText = "¡Éxito! Transacción firmada e instrucciones procesadas.";
-        
-        checkCooldown();
+        if (signResponse) {
+            localStorage.setItem(`last_claim_${userAddress}`, Date.now().toString());
+            statusDiv.className = "success";
+            statusDiv.innerText = "¡Éxito! Transacción firmada correctamente a través de Keplr.";
+            checkCooldown();
+        } else {
+            throw new Error("La firma fue rechazada o no devolvió datos válidos.");
+        }
 
     } catch (err) {
         statusDiv.className = "error";
-        statusDiv.innerText = "Error en la firma remota: " + err.message;
+        statusDiv.innerText = "Error en la transacción: " + err.message;
         claimBtn.disabled = false;
     }
 }
+
