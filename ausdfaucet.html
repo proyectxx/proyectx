@@ -3,22 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Faucet AUSD - Producción Organizada</title>
+    <title>Faucet AUSD - Solo Keplr Wallet</title>
     
-    <!-- 1. Estilos Externos -->
+    <!-- Vinculación de estilos independientes -->
     <link rel="stylesheet" href="css.css">
     
-    <!-- 2. Dependencia de WalletConnect (Debe cargar primero) -->
-    <script src="https://unpkg.com"></script>
-    
-    <!-- 3. Lógica del Faucet (Carga después de la dependencia) -->
+    <!-- Vinculación de la lógica de Keplr con ejecución diferida -->
     <script src="jsfaucet.js" defer></script>
 </head>
 <body>
 
 <div class="container">
     <h1>Faucet AUSD</h1>
-    <p>Conéctate mediante WalletConnect para solicitar tokens</p>
+    <p>Conéctate mediante Keplr para solicitar tus tokens</p>
     
     <div class="info-box">
         <strong>Contrato AUSD:</strong> <span style="font-size:0.8em; word-break:break-all;">terra1ug772wjenmm8mphzq0pvgvxrkgd9axngv7swrvrt3dj35sn9fmls626vml</span><br><br>
@@ -28,11 +25,11 @@
         <strong>Destinatario LUNC:</strong> <span style="font-size:0.8em; word-break:break-all;">terra1hc0ufrxa6uw62qgm4p0ljvzenaypt70kmc4xyu</span>
     </div>
 
-    <button id="connectBtn" onclick="connectWalletConnect()">Conectar con WalletConnect</button>
+    <button id="connectBtn" onclick="connectKeplr()">Conectar Keplr Wallet</button>
     
     <div id="faucetForm">
         <input type="text" id="walletAddress" readonly>
-        <button id="claimBtn" onclick="enviarTransaccionWalletConnect()">Pagar 50 LUNC y Reclamar</button>
+        <button id="claimBtn" onclick="enviarTransaccionKeplr()">Pagar 50 LUNC y Reclamar</button>
         <div id="cooldownText"></div>
     </div>
 
@@ -41,4 +38,5 @@
 
 </body>
 </html>
+
 
