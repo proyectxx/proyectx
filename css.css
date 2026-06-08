@@ -1,0 +1,89 @@
+body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background-color: #0c101d;
+    color: #ffffff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+}
+.container {
+    background-color: #161b2c;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+    width: 100%;
+    max-width: 450px;
+    text-align: center;
+}
+h1 { 
+    color: #fcc419; 
+    margin-bottom: 5px; 
+}
+.info-box {
+    font-size: 0.9em;
+    color: #8892b0;
+    background: #0c101d;
+    padding: 12px;
+    border-radius: 6px;
+    margin-bottom: 20px;
+    text-align: left;
+    border: 1px solid #2e3752;
+}
+.info-box strong { 
+    color: #ffffff; 
+}
+button {
+    width: 100%;
+    padding: 14px;
+    background-color: #fcc419;
+    border: none;
+    color: #0c101d;
+    font-size: 16px;
+    font-weight: bold;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+button:hover { 
+    background-color: #e6b017; 
+}
+button:disabled {
+    background-color: #343a40;
+    color: #8892b0;
+    cursor: not-allowed;
+}
+#faucetForm { 
+    display: none; 
+    margin-top: 20px; 
+}
+input {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 15px;
+    box-sizing: border-box;
+    background: #0c101d;
+    border: 1px solid #2e3752;
+    color: white;
+    border-radius: 6px;
+    text-align: center;
+}
+#status { 
+    margin-top: 15px; 
+    font-size: 0.9em; 
+    font-weight: 500; 
+    white-space: pre-line; 
+}
+.success { 
+    color: #00e676; 
+}
+.error { 
+    color: #ff1744; 
+}
+#cooldownText { 
+    color: #ff9800; 
+    font-weight: bold; 
+    margin-top: 10px; 
+    font-size: 0.95em; 
+}
