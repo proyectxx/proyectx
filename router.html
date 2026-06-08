@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Router de Venta AWERT</title>
+    <!-- Vinculación del archivo de estilos externo -->
+    <link rel="stylesheet" href="router.css">
+</head>
+<body>
+
+<div class="box">
+    <h2>Comprar AWERT</h2>
+    <p class="info">Precio Inicial: 1 AWERT = 0.01 Moneda Nativa</p>
+    
+    <button id="walletBtn" onclick="initWallet()">1. Conectar Wallet</button>
+    
+    <div class="network-section">
+        <p id="network">2. Selecciona tu Red:</p>
+        <div class="grid-networks">
+            <button class="net-btn" onclick="switchNetwork('ethereum')">Ethereum</button>
+            <button class="net-btn" onclick="switchNetwork('base')">Base</button>
+            <button class="net-btn" onclick="switchNetwork('bsc')">Binance (BSC)</button>
+            <button class="net-btn" onclick="switchNetwork('hedera')">Hedera EVM</button>
+        </div>
+    </div>
+    
+    <div id="swapForm" style="display:none;">
+        <div id="swapPoolDisplay" class="pool-info">Disponible en Swap: <span id="swapPoolAmount">0</span> AWERT</div>
+        <input type="number" id="tokenAmount" placeholder="Cantidad de AWERT a comprar" oninput="calculatePrice()">
+        <p id="priceCalc" class="price-calc-box">Total a pagar: 0.00 Moneda Nativa</p>
+        <button onclick="buyTokens()" class="buy-btn">Comprar Ahora</button>
+    </div>
+    
+    <p id="log" class="log-output"></p>
+
+    <!-- SECCIÓN EXCLUSIVA PARA EL ADMINISTRADOR -->
+    <div id="adminPanel" class="admin-section">
+        <h3>Panel de Control Propietario</h3>
+        <p>Retirar tokens comerciales de vuelta a tu wallet personal.</p>
+        <input type="number" id="withdrawAmount" placeholder="Cantidad de AWERT a retirar">
+        <button onclick="adminWithdraw()" class="admin-btn">Extraer Fondos a Wallet</button>
+    </div>
+</div>
+
+<!-- Carga de librerías y script de control al final para optimizar rendimiento -->
+<script src="https://cloudflare.com"></script>
+<script src="router.js"></script>
+</body>
+</html>
