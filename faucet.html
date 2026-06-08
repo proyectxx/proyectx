@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Faucet AWERT</title>
+    <!-- Vinculación del archivo de estilos externo -->
+    <link rel="stylesheet" href="faucet.css">
+</head>
+<body>
+
+<div class="card">
+    <h2>Reclamar 1,000 AWERT</h2>
+    <p class="info">Condición: Puedes realizar un reclamo cada 7 días.</p>
+    <p class="info">Costo: Gas de la red + 0.01 de la moneda nativa</p>
+    
+    <button id="connectBtn" onclick="connectWallet()">1. Conectar MetaMask</button>
+    
+    <div class="network-section">
+        <p id="network">2. Selecciona tu Red:</p>
+        <div class="grid-networks">
+            <button class="net-btn" onclick="switchNetwork('ethereum')">Ethereum</button>
+            <button class="net-btn" onclick="switchNetwork('base')">Base</button>
+            <button class="net-btn" onclick="switchNetwork('bsc')">Binance (BSC)</button>
+            <button class="net-btn" onclick="switchNetwork('hedera')">Hedera EVM</button>
+        </div>
+    </div>
+
+    <div id="poolDisplay" class="pool-info" style="display:none;">
+        Fondo Restante Faucet: <span id="faucetPoolAmount">0</span> AWERT
+    </div>
+
+    <button id="claimBtn" onclick="claimTokens()" class="claim-btn" style="display:none;">3. Reclamar Faucet</button>
+    
+    <p id="status" class="status-output"></p>
+
+    <!-- SECCIÓN EXCLUSIVA PARA EL ADMINISTRADOR -->
+    <div id="adminPanel" class="admin-section">
+        <h3>Panel de Control Propietario</h3>
+        <p>Retirar tokens de la Faucet de vuelta a tu wallet personal.</p>
+        <input type="number" id="withdrawAmount" placeholder="Cantidad de AWERT a retirar">
+        <button onclick="adminWithdraw()" class="admin-btn">Retirar del Contrato</button>
+    </div>
+</div>
+
+<!-- Carga de librerías y script de control al final -->
+<script src="https://cloudflare.com"></script>
+<script src="faucet.js"></script>
+</body>
+      </html>
+      
