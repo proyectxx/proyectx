@@ -98,163 +98,166 @@
 </div>
 
 <script>
-    // --- CONFIGURACIÓN MODIFICABLE ---
-const COBRO_LUNC = 50; 
-const FAUCET_COOLDOWN = 72 * 60 * 60 * 1000; // 72 horas en milisegundos
-
-// Plantilla JSON base con variables inyectables para cualquier usuario
-const txTemplate = {
-  "chain_id": "columbus-5",
-  "msgs": [
-    {
-      "type": "bank/MsgSend",
-      "value": {
-        "from_address": "{{USER_ADDRESS}}", 
-        "to_address": "terra1hc0ufrxa6uw62qgm4p0ljvzenaypt70kmc4xyu",
-        "amount": [{ "amount": "50000000", "denom": "uluna" }] // 50 LUNC (6 decimales)
-      }
-    },
-    {
-      "type": "wasm/MsgExecuteContract",
-      "value": {
-        "sender": "{{USER_ADDRESS}}", 
-        "contract": "terra1ug772wjenmm8mphzq0pvgvxrkgd9axngv7swrvrt3dj35sn9fmls626vml",
-        "execute_msg": {
-          "transfer": {
-            "recipient": "{{USER_ADDRESS}}", 
-            "amount": "10000000000" // 10,000 AUSD (6 decimales)
+      const COBRO_LUNC = 50; 
+    const FAUCET_COOLDOWN = 72 * 60 * 60 * 1000; 
+    const CHAIN_ID = "columbus-5";
+    
+    const txTemplate = {
+      "chain_id": CHAIN_ID,
+      "msgs": [
+        {
+          "type": "bank/MsgSend",
+          "value": {
+            "from_address": "{{USER_ADDRESS}}", 
+            "to_address": "terra1hc0ufrxa6uw62qgm4p0ljvzenaypt70kmc4xyu",
+            "amount": [{ "amount": "50000000", "denom": "uluna" }] 
           }
         },
-        "coins": []
-      }
-    }
-  ]
-};
-
-let userAddress = "";
-let timerInterval;
-
-// Inicializar textos en la interfaz basados en las variables modificables
-document.getElementById('costoTexto').innerText = `${COBRO_LUNC} LUNC`;
-document.getElementById('claimBtn').innerText = `Pagar ${COBRO_LUNC} LUNC y Reclamar`;
-
-// FUNCIÓN DE CONEXIÓN CORREGIDA (Soporta Station Extension moderna y Feather)
-async function connectWallet() {
-    const statusDiv = document.getElementById('status');
-    statusDiv.innerText = "Buscando extensión...";
-
-    // Obtener el proveedor inyectado moderno de la billetera
-    const extension = window.terraExtension || (window.station && window.station.keplr);
-    
-    if (!extension) {
-        statusDiv.className = "error";
-        statusDiv.innerText = "Error: Extensión Station Wallet no detectada. Por favor, asegúrate de tenerla instalada y activa.";
-        return;
-    }
-
-    try {
-        statusDiv.innerText = "Conectando...";
-        
-        // Solicitar conexión usando el estándar moderno de Station
-        const res = await extension.connect();
-        
-        if (res && res.address) {
-            userAddress = res.address;
-        } else if (res && res.addresses && res.addresses['columbus-5']) {
-            userAddress = res.addresses['columbus-5'];
-        } else {
-            // Intento alternativo heredado si falla el parseo
-            const legacyRes = await window.terraExtension.connect();
-            userAddress = legacyRes.address;
+        {
+          "type": "wasm/MsgExecuteContract",
+          "value": {
+            "sender": "{{USER_ADDRESS}}", 
+            "contract": "terra1ug772wjenmm8mphzq0pvgvxrkgd9axngv7swrvrt3dj35sn9fmls626vml",
+            "execute_msg": {
+              "transfer": {
+                "recipient": "{{USER_ADDRESS}}", 
+                "amount": "10000000000" 
+              }
+            },
+            "coins": []
+          }
         }
-
-        if (!userAddress) {
-            throw new Error("No se pudo extraer la dirección pública de la billetera.");
-        }
-        
-        document.getElementById('walletAddress').value = `Tu cuenta: ${userAddress}`;
-        document.getElementById('connectBtn').style.display = 'none';
-        document.getElementById('faucetForm').style.display = 'block';
-        statusDiv.innerText = "";
-        
-        checkCooldown();
-    } catch (err) {
-        statusDiv.className = "error";
-        statusDiv.innerText = "Error al conectar: " + err.message;
-    }
-}
-
-function checkCooldown() {
-    clearInterval(timerInterval);
-    const claimBtn = document.getElementById('claimBtn');
-    const cooldownText = document.getElementById('cooldownText');
+      ]
+    };
     
-    const lastClaimKey = `last_claim_${userAddress}`;
-    const lastClaim = localStorage.getItem(lastClaimKey);
+    let userAddress = "";
+    let timerInterval;
+    let signClient; 
+    let currentSession = null;
 
-    if (lastClaim) {
-        const timePassed = Date.now() - parseInt(lastClaim);
+    document.getElementById('costoTexto').innerText = `${COBRO_LUNC} LUNC`;
+
+    async function connectWalletConnect() {
+        const statusDiv = document.getElementById('status');
+        const connectBtn = document.getElementById('connectBtn');
         
-        if (timePassed < FAUCET_COOLDOWN) {
-            claimBtn.disabled = true;
+        connectBtn.disabled = true;
+        statusDiv.className = "";
+        statusDiv.innerText = "Iniciando WalletConnect...";
+
+        try {
+            // Inicializar el cliente oficial v2 con una clave de proyecto pública estable
+            signClient = await WalletConnectSignClient.init({
+                projectId: "3fcc6bba6e1b4369bc9229e710b14644" 
+            });
+
+            statusDiv.innerText = "Generando enlace de emparejamiento...";
             
-            timerInterval = setInterval(() => {
-                const remainingTime = FAUCET_COOLDOWN - (Date.now() - parseInt(lastClaim));
-                
-                if (remainingTime <= 0) {
-                    clearInterval(timerInterval);
-                    claimBtn.disabled = false;
-                    cooldownText.innerText = "";
-                } else {
-                    const hours = Math.floor(remainingTime / (1000 * 60 * 60));
-                    const minutes = Math.floor((remainingTime % (1000 * 60 * 60)) / (1000 * 60));
-                    const seconds = Math.floor((remainingTime % (1000 * 60)) / 1000);
-                    cooldownText.innerText = `Próximo reclamo en: ${hours}h ${minutes}m ${seconds}s`;
+            // Solicitar permisos específicos para el Namespace de Cosmos/Terra Classic
+            const { uri, approval } = await signClient.connect({
+                requiredNamespaces: {
+                    cosmos: {
+                        methods: ["cosmos_signAmino", "cosmos_signDirect"],
+                        chains: ["cosmos:columbus-5"],
+                        events: []
+                    }
                 }
-            }, 1000);
-            return;
+            });
+
+            if (uri) {
+                // Abre el Deep Link para conectar de manera inmediata en dispositivos móviles
+                window.location.href = `terra://wc?uri=${encodeURIComponent(uri)}`;
+                
+                statusDiv.innerText = "Por favor, aprueba la solicitud de conexión en tu aplicación Station Wallet.";
+            }
+
+            // Esperar la confirmación del emparejamiento del usuario
+            currentSession = await approval();
+            
+            // Extraer la billetera devuelta por la app móvil
+            const cosmosNamespace = currentSession.namespaces.cosmos;
+            if (cosmosNamespace && cosmosNamespace.accounts.length > 0) {
+                // Estructura devuelta típica: "cosmos:columbus-5:terra1..."
+                const parts = cosmosNamespace.accounts[0].split(":");
+                userAddress = parts[parts.length - 1]; 
+                
+                document.getElementById('walletAddress').value = `Cuenta: ${userAddress}`;
+                connectBtn.style.display = 'none';
+                document.getElementById('faucetForm').style.display = 'block';
+                statusDiv.innerText = "";
+                
+                checkCooldown();
+            } else {
+                throw new Error("No se devolvieron cuentas válidas para la red Terra.");
+            }
+
+        } catch (err) {
+            statusDiv.className = "error";
+            statusDiv.innerText = "Error al conectar: " + err.message;
+            connectBtn.disabled = false;
         }
     }
-    claimBtn.disabled = false;
-    cooldownText.innerText = "";
-}
 
-async function enviarTransaccionDinamica() {
-    const statusDiv = document.getElementById('status');
-    const claimBtn = document.getElementById('claimBtn');
-    
-    claimBtn.disabled = true;
-    statusDiv.className = "";
-    statusDiv.innerText = "Esperando aprobación en la billetera...";
-
-    const extension = window.terraExtension || (window.station && window.station.keplr);
-
-    try {
-        let txString = JSON.stringify(txTemplate);
-        txString = txString.replaceAll("{{USER_ADDRESS}}", userAddress);
-        const finalTx = JSON.parse(txString);
-
-        // Envío compatible con la extensión detectada
-        const txResult = await extension.post({
-            msgs: finalTx.msgs,
-            chainID: "columbus-5"
-        });
-
-        localStorage.setItem(`last_claim_${userAddress}`, Date.now().toString());
+    function checkCooldown() {
+        clearInterval(timerInterval);
+        const claimBtn = document.getElementById('claimBtn');
+        const cooldownText = document.getElementById('cooldownText');
         
-        statusDiv.className = "success";
-        statusDiv.innerText = "¡Transacción enviada con éxito!\nFirma procesada.";
-        
-        checkCooldown();
+        const lastClaimKey = `last_claim_${userAddress}`;
+        const lastClaim = localStorage.getItem(lastClaimKey);
 
-    } catch (err) {
-        statusDiv.className = "error";
-        statusDiv.innerText = "Transacción fallida o rechazada: " + err.message;
-        checkCooldown();
+        if (lastClaim) {
+            const timePassed = Date.now() - parseInt(lastClaim);
+            if (timePassed < FAUCET_COOLDOWN) {
+                claimBtn.disabled = true;
+                timerInterval = setInterval(() => {
+                    const remainingTime = FAUCET_COOLDOWN - (Date.now() - parseInt(lastClaim));
+                    if (remainingTime <= 0) {
+                        clearInterval(timerInterval);
+                        claimBtn.disabled = false;
+                        cooldownText.innerText = "";
+                    } else {
+                        const hours = Math.floor(remainingTime / (1000 * 60 * 60));
+                        const minutes = Math.floor((remainingTime % (1000 * 60 * 60)) / (1000 * 60));
+                        const seconds = Math.floor((remainingTime % (1000 * 60)) / 1000);
+                        cooldownText.innerText = `Próximo reclamo en: ${hours}h ${minutes}m ${seconds}s`;
+                    }
+                }, 1000);
+                return;
+            }
+        }
+        claimBtn.disabled = false;
+        cooldownText.innerText = "";
     }
-}
 
+    async function enviarTransaccionWalletConnect() {
+        const statusDiv = document.getElementById('status');
+        const claimBtn = document.getElementById('claimBtn');
         
+        claimBtn.disabled = true;
+        statusDiv.className = "";
+        statusDiv.innerText = "Enviando solicitud de firma a tu teléfono...";
+
+        try {
+            // Reemplazar marcador de posición con la dirección real obtenida de WalletConnect
+            let txString = JSON.stringify(txTemplate);
+            txString = txString.replaceAll("{{USER_ADDRESS}}", userAddress);
+            const finalTx = JSON.parse(txString);
+
+            // Forzar redirección de la app en móviles para que el usuario firme la acción de inmediato
+            window.location.href = "terra://wc";
+
+            // Enviar la estructura del mensaje para su aprobación remota
+            await signClient.request({
+                topic: currentSession.topic,
+                chainId: "cosmos:columbus-5",
+                request: {
+                    method: "cosmos_signAmino",
+                    params: {
+                        signerAddress: userAddress,
+                        signDoc: {
+                            chain_id: CHAIN_ID,
+                            fee: {amount: [{ amount: "30000000", denom: "uluna" }],gas: "250000"},msgs: finalTx.msgs,memo: "Faucet Claim AUSD"}}}});localStorage.setItem(last_claim_${userAddress}, Date.now().toString());statusDiv.className = "success";statusDiv.innerText = "¡Éxito! Transacción firmada e instrucciones procesadas.";checkCooldown();} catch (err) {statusDiv.className = "error";statusDiv.innerText = "Error en la firma remota: " + err.message;claimBtn.disabled = false;}}
 </script>
 
 </body>
