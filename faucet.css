@@ -1,0 +1,160 @@
+/* Estilos Generales y Reset */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    text-align: center;
+    padding: 50px 20px;
+    background: #f4f7f6;
+    margin: 0;
+}
+
+/* Contenedor Tarjeta Principal */
+.card {
+    background: #ffffff;
+    padding: 40px 30px;
+    border-radius: 12px;
+    display: inline-block;
+    max-width: 440px;
+    width: 100%;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+    box-sizing: border-box;
+}
+
+h2 {
+    margin-top: 0;
+    color: #1a1a1a;
+}
+
+.info {
+    color: #555;
+    font-size: 14px;
+    margin: 4px 0 12px 0;
+}
+
+/* Botones del Sistema */
+button {
+    color: white;
+    border: none;
+    padding: 14px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: bold;
+    transition: background 0.2s ease, transform 0.1s ease;
+}
+
+button:active {
+    transform: scale(0.98);
+}
+
+#connectBtn {
+    background: #007bff;
+    width: 100%;
+    margin-bottom: 15px;
+}
+
+#connectBtn:hover {
+    background: #0056b3;
+}
+
+/* Selector de Redes */
+.network-section {
+    margin: 20px 0;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+}
+
+#network {
+    margin: 0 0 12px 0;
+    font-size: 14px;
+    font-weight: bold;
+    color: #444;
+}
+
+.grid-networks {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+
+.net-btn {
+    background: #6c757d;
+    padding: 10px;
+    font-size: 13px;
+}
+
+.net-btn:hover {
+    background: #5a6268;
+}
+
+/* Estado de la Faucet */
+.pool-info {
+    margin: 15px 0;
+    font-size: 16px;
+    background: #e3f2fd;
+    padding: 12px;
+    border-radius: 6px;
+    font-weight: bold;
+    color: #0d47a1;
+}
+
+.claim-btn {
+    background: #28a745;
+    width: 100%;
+    margin-top: 10px;
+}
+
+.claim-btn:hover {
+    background: #218838;
+}
+
+.status-output {
+    margin-top: 15px;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+/* Sección de Administrador */
+.admin-section {
+    margin-top: 30px;
+    padding: 20px;
+    background: #fff3e0;
+    border: 2px dashed #ff9800;
+    border-radius: 8px;
+    display: none;
+    text-align: center;
+}
+
+.admin-section h3 {
+    color: #e65100;
+    margin-top: 0;
+    font-size: 16px;
+}
+
+.admin-section p {
+    font-size: 12px;
+    color: #666;
+    margin-bottom: 12px;
+}
+
+input {
+    padding: 12px;
+    width: 100%;
+    margin-bottom: 12px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    font-size: 16px;
+    text-align: center;
+    box-sizing: border-box;
+}
+
+.admin-btn {
+    background: #ff9800;
+    width: 100%;
+    font-size: 14px;
+}
+
+.admin-btn:hover {
+    background: #e65100;
+}
