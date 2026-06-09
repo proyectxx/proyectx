@@ -1,5 +1,5 @@
 async function syncContractData() {
-    if (!contractAddress || contractAddress.startsWith("TU_DIRECCION")) {
+    if (!contractAddress || contractAddress.startsWith("0xEC22cA49940c8E2c2Bd064fEFbcbbC29067a1a2B")) {
         document.getElementById('logOutput').innerText = "⚠️ Configura la dirección del contrato en sepolia.js";
         return;
     }
