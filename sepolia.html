@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Router Swap AWERT - Sepolia</title>
+    <link rel="stylesheet" href="sepolia.css">
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h2>AWERT Swap (Sepolia Testnet)</h2>
+        <button id="connectBtn" onclick="connectWallet()">Conectar MetaMask</button>
+        <p id="networkStatus">Red: Desconectado</p>
+    </header>
+
+    <!-- Área de Intercambio Comercial -->
+    <div id="swapView" class="tab-content active">
+        <h3>Intercambio Comercial (Swap)</h3>
+        <p class="subtitle">Precio Inicial: 1 AWERT = 0.01 Sepolia ETH</p>
+        <div class="pool-info green-pool">Stock de Venta: <span id="swapPoolAmount">0</span> AWERT</div>
+        
+        <input type="number" id="tokenAmount" placeholder="Cantidad de AWERT a comprar" oninput="calculatePrice()">
+        <p id="priceCalc" class="calc-box">Total a pagar: 0.00 Sepolia ETH</p>
+        <button onclick="buyTokens()" class="action-btn buy-btn">Comprar Ahora</button>
+    </div>
+
+    <!-- Mensajes del Sistema -->
+    <p id="logOutput" class="log-box"></p>
+
+    <!-- PANEL EXCLUSIVO DEL PROPIETARIO -->
+    <div id="adminPanel" class="admin-box">
+        <h3>Panel de Control Admin (Venta)</h3>
+        <p>Extraer tokens de las piscinas del contrato inteligente.</p>
+        <input type="number" id="withdrawAmount" placeholder="Monto de AWERT">
+        <button onclick="adminWithdraw()" class="action-btn admin-btn">Retirar a Wallet Principal</button>
+    </div>
+</div>
+
+<script src="https://cloudflare.com"></script>
+<script src="sepolia.js"></script>
+</body>
+</html>
