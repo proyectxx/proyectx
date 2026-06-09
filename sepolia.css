@@ -1,121 +1,246 @@
+/* ==========================================================================
+   ESTILOS GENERALES Y RESET - INTERFAZ NEÓN DARK
+   ========================================================================== */
 body {
-    font-family: 'Segoe UI', Arial, sans-serif;
-    background-color: #0f172a;
-    color: #f8fafc;
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+    background-color: #05050a; /* Fondo ultra oscuro profundo */
+    color: #ffffff;
     text-align: center;
-    padding: 40px 10px;
+    padding: 50px 10px;
     margin: 0;
 }
 
+/* Contenedor Principal Estilo DeFi Premium */
 .container {
-    background: #1e293b;
+    background: #0d0e15; /* Fondo negro azulado mate */
     max-width: 480px;
     width: 100%;
     display: inline-block;
-    padding: 30px;
-    border-radius: 16px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    padding: 35px 30px;
+    border-radius: 20px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), 0 0 15px rgba(56, 189, 248, 0.05);
+    border: 1px solid #1e293b;
     box-sizing: border-box;
     text-align: left;
 }
 
 header {
     text-align: center;
-    border-bottom: 1px solid #334155;
-    padding-bottom: 15px;
-    margin-bottom: 20px;
+    border-bottom: 2px solid #111827;
+    padding-bottom: 20px;
+    margin-bottom: 25px;
 }
 
-header h2 { margin: 0 0 10px 0; color: #38bdf8; }
-#networkStatus { font-size: 13px; color: #94a3b8; margin: 8px 0 0 0; font-weight: bold; }
-
-/* Sistema de Pestañas */
-.tabs {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 20px;
-}
-.tab-btn {
-    flex: 1;
-    background: #334155;
-    padding: 10px;
-    border: none;
-    color: #94a3b8;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: bold;
-}
-.tab-btn.active {
-    background: #38bdf8;
-    color: #0f172a;
+header h2 { 
+    margin: 0 0 12px 0; 
+    color: #38bdf8; 
+    text-shadow: 0 0 10px rgba(56, 189, 248, 0.3);
+    font-weight: 800;
+    letter-spacing: 0.5px;
 }
 
-.tab-content { display: none; }
-.tab-content.active { display: block; }
+#networkStatus { 
+    font-size: 13px; 
+    color: #64748b; 
+    margin: 12px 0 0 0; 
+    font-weight: bold; 
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
 
-h3 { margin-top: 0; color: #f1f5f9; }
-.subtitle { font-size: 13px; color: #94a3b8; margin-top: -8px; }
+.tab-content { display: block; }
+h3 { margin-top: 0; color: #f8fafc; font-weight: 700; }
+.subtitle { font-size: 13px; color: #64748b; margin-top: -6px; margin-bottom: 20px; }
 
-/* Bloques de Datos e Inputs */
+/* Bloques de Datos de las Piscinas (Stock) */
 .pool-info {
-    font-weight: bold;
-    padding: 10px;
-    border-radius: 8px;
-    margin-bottom: 15px;
+    font-weight: 800;
+    padding: 14px;
+    border-radius: 10px;
+    margin-bottom: 20px;
     text-align: center;
+    letter-spacing: 0.5px;
+    border: 1px solid transparent;
 }
-.green-pool { background: rgba(34, 197, 94, 0.15); color: #4ade80; }
-.blue-pool { background: rgba(56, 189, 248, 0.15); color: #38bdf8; }
+.green-pool { 
+    background: rgba(34, 197, 94, 0.05); 
+    color: #4ade80; 
+    border-color: rgba(34, 197, 94, 0.15);
+}
+.blue-pool { 
+    background: rgba(56, 189, 248, 0.05); 
+    color: #38bdf8; 
+    border-color: rgba(56, 189, 248, 0.15);
+}
 
+/* Campos de entrada (Inputs) */
 input {
     width: 100%;
-    padding: 12px;
-    background: #0f172a;
-    border: 1px solid #475569;
-    color: #fff;
+    padding: 14px;
+    background: #020205;
+    border: 1px solid #334155;
+    color: #ffffff;
     font-size: 16px;
-    border-radius: 8px;
+    border-radius: 10px;
     text-align: center;
     box-sizing: border-box;
     margin-bottom: 15px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+input:focus {
+    outline: none;
+    border-color: #38bdf8;
+    box-shadow: 0 0 10px rgba(56, 189, 248, 0.2);
 }
 
-.calc-box { font-weight: bold; text-align: center; margin: 15px 0; line-height: 1.5; }
+.calc-box { 
+    font-weight: 700; 
+    text-align: center; 
+    margin: 20px 0; 
+    line-height: 1.6; 
+    color: #e2e8f0;
+}
 
-/* Botones de Acción */
-.action-btn {
+/* ==========================================================================
+   SISTEMA DE BOTONES LLAMATIVOS CON FONDO NEGRO Y NEÓN MALÉVOLO/DEFI
+   ========================================================================== */
+.action-btn, #connectBtn {
     width: 100%;
-    padding: 14px;
-    border: none;
-    border-radius: 8px;
-    font-size: 15px;
-    font-weight: bold;
-    cursor: pointer;
-    color: #fff;
-    transition: opacity 0.2s;
-}
-.action-btn:hover { opacity: 0.9; }
-
-#connectBtn { background: #6366f1; width: auto; padding: 8px 16px; border-radius: 6px; }
-.buy-btn { background: #22c55e; }
-.claim-btn { background: #38bdf8; color: #0f172a; }
-
-/* Alertas de Precio Escalado */
-.alert-mid { color: #fb923c; display: block; font-size: 13px; margin-top: 5px; font-weight: bold; }
-.alert-high { color: #f87171; display: block; font-size: 13px; margin-top: 5px; font-weight: bold; animation: pulse 1.2s infinite; }
-@keyframes pulse { 50% { opacity: 0.5; } }
-
-.log-box { text-align: center; font-weight: bold; margin-top: 15px; font-size: 14px; color: #cbd5e1; }
-
-/* Estilos de Administrador */
-.admin-box {
-    margin-top: 25px;
-    background: rgba(251, 146, 60, 0.08);
-    border: 2px dashed #fb923c;
-    padding: 20px;
+    padding: 16px;
+    background-color: #000000; /* Fondo estrictamente Negro */
+    border: 2px solid #ffffff; /* Borde base brillante */
     border-radius: 10px;
-    display: none;
+    font-size: 15px;
+    font-weight: 800;
+    cursor: pointer;
+    color: #ffffff;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    box-sizing: border-box;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6);
 }
-.admin-box h3 { color: #fb923c; font-size: 16px; margin: 0 0 5px 0; }
-.admin-box p { font-size: 12px; color: #cbd5e1; margin: 0 0 12px 0; }
-.admin-btn { background: #fb923c; }
+
+/* Botón Conectar Wallet (Neón Morado/Indigo) */
+#connectBtn { 
+    background-color: #000000;
+    border-color: #6366f1; 
+    color: #a5b4fc;
+    width: auto; 
+    padding: 10px 22px; 
+    border-radius: 8px; 
+    display: block; 
+    margin: 0 auto; 
+    font-size: 13px;
+}
+#connectBtn:hover {
+    background-color: #05050a;
+    color: #ffffff;
+    box-shadow: 0 0 20px rgba(99, 102, 241, 0.6);
+    text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+    transform: translateY(-2px);
+}
+
+/* Botón Comprar Swap (Neón Esmeralda Vibrante) */
+.buy-btn { 
+    border-color: #22c55e; 
+    color: #4ade80;
+}
+.buy-btn:hover {
+    background-color: #020603;
+    color: #ffffff;
+    border-color: #4ade80;
+    box-shadow: 0 0 25px rgba(34, 197, 94, 0.7);
+    text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+    transform: translateY(-3px);
+}
+
+/* Botón Reclamar Faucet (Neón Cian Eléctrico) */
+.claim-btn { 
+    border-color: #0ea5e9; 
+    color: #38bdf8;
+    margin-top: 10px;
+}
+.claim-btn:hover {
+    background-color: #010409;
+    color: #ffffff;
+    border-color: #38bdf8;
+    box-shadow: 0 0 25px rgba(14, 165, 233, 0.7);
+    text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+    transform: translateY(-3px);
+}
+
+/* Animación de pulsación al hacer clic en los botones */
+.action-btn:active, #connectBtn:active {
+    transform: scale(0.97) translateY(0);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+}
+
+/* ==========================================================================
+   ALERTAS DE PRECIO DINÁMICAS (MECANISMO REBASE/ESCASEZ)
+   ========================================================================== */
+.alert-mid { 
+    color: #f97316; 
+    display: block; 
+    font-size: 13px; 
+    margin-top: 8px; 
+    font-weight: 800; 
+    background: rgba(249, 115, 22, 0.1);
+    padding: 8px;
+    border-radius: 6px;
+    border: 1px solid rgba(249, 115, 22, 0.2);
+}
+.alert-high { 
+    color: #ef4444; 
+    display: block; 
+    font-size: 13px; 
+    margin-top: 8px; 
+    font-weight: 800; 
+    background: rgba(239, 68, 68, 0.15);
+    padding: 8px;
+    border-radius: 6px;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    animation: pulseGlow 1.2s infinite; 
+}
+@keyframes pulseGlow { 
+    0% { box-shadow: 0 0 0px rgba(239, 68, 68, 0); }
+    50% { opacity: 0.8; box-shadow: 0 0 10px rgba(239, 68, 68, 0.3); }
+    100% { box-shadow: 0 0 0px rgba(239, 68, 68, 0); }
+}
+
+.log-box { 
+    text-align: center; 
+    font-weight: bold; 
+    margin-top: 20px; 
+    font-size: 14px; 
+    color: #94a3b8; 
+    min-height: 24px; 
+}
+
+/* ==========================================================================
+   PANEL DE CONTROL EXCLUSIVO ADMIN (NEÓN AMARILLO INDUSTRIAL)
+   ========================================================================== */
+.admin-box {
+    margin-top: 35px;
+    background: #020204;
+    border: 2px dashed #f59e0b;
+    padding: 22px;
+    border-radius: 12px;
+    display: none;
+    box-shadow: inset 0 0 15px rgba(245, 158, 11, 0.05);
+}
+.admin-box h3 { color: #f59e0b; font-size: 16px; margin: 0 0 6px 0; text-transform: uppercase; letter-spacing: 0.5px; }
+.admin-box p { font-size: 12px; color: #64748b; margin: 0 0 15px 0; }
+
+.admin-btn { 
+    border-color: #f59e0b; 
+    color: #fbbf24;
+}
+.admin-btn:hover {
+    background-color: #060401;
+    color: #ffffff;
+    border-color: #fbbf24;
+    box-shadow: 0 0 25px rgba(245, 158, 11, 0.7);
+    text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+    transform: translateY(-3px);
+}
